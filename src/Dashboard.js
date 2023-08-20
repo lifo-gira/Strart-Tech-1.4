@@ -88,6 +88,24 @@ const Dashboard = ({ height, userId }) => {
         setInterval(() => {
           fetchMetrics(data.data).then((metrics) => {
             setMetrics(metrics);
+            setFilteredData(() => {
+              let temp = metrics.map((item) => {
+                const series = item.series;
+                // console.log(series,"ASDAS")
+        
+                for (let i = 0; i < series.length; i += 10) {
+                  const slice = series.slice(i, i + 10);
+                  const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseInt(val) }));
+                  metricArray.push(...mappedSlice);
+                  // dataArray.push(...mappedSlice.map(item => item.val));
+                  // indexVal.push(...mappedSlice.map(item => item.index));
+                }
+                // setmetricArray(tempArray)
+                console.log(metricArray, "HEE")
+                return tempArray;
+              });
+              return temp
+            });
           });
         }, 5000);
       })
@@ -99,30 +117,30 @@ const Dashboard = ({ height, userId }) => {
     };
   }, []);
 
-  const handleSelect = (event) => {
-    setSelectedOption(event.target.value);
-    console.log(event.target.value)
-    setFilteredData(() => {
-      const filteredOption = metrics.filter((item) => item.data_id === event.target.value)
-      console.log("filtereedoption", filteredOption)
-      let temp = filteredOption.map((item) => {
-        const series = item.series;
-        console.log(series,"ASDAS")
+  // const handleSelect = (event) => {
+  //   setSelectedOption(event.target.value);
+  //   console.log(event.target.value)
+  //   setFilteredData(() => {
+  //     const filteredOption = metrics.filter((item) => item.data_id === event.target.value)
+  //     // console.log("filtereedoption", filteredOption)
+  //     let temp = filteredOption.map((item) => {
+  //       const series = item.series;
+  //       // console.log(series,"ASDAS")
 
-        for (let i = 0; i < series.length; i += 10) {
-          const slice = series.slice(i, i + 10);
-          const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseInt(val) }));
-          metricArray.push(...mappedSlice);
-          // dataArray.push(...mappedSlice.map(item => item.val));
-          // indexVal.push(...mappedSlice.map(item => item.index));
-        }
-        // setmetricArray(tempArray)
-        // console.log(metricArray, "HEE")
-        return tempArray;
-      });
-      return temp
-    });
-  };
+  //       for (let i = 0; i < series.length; i += 10) {
+  //         const slice = series.slice(i, i + 10);
+  //         const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseInt(val) }));
+  //         metricArray.push(...mappedSlice);
+  //         // dataArray.push(...mappedSlice.map(item => item.val));
+  //         // indexVal.push(...mappedSlice.map(item => item.index));
+  //       }
+  //       // setmetricArray(tempArray)
+  //       // console.log(metricArray, "HEE")
+  //       return tempArray;
+  //     });
+  //     return temp
+  //   });
+  // };
   const chartRef = useRef(null);
   const downloadAsPdf = async () => {
     try {
@@ -152,13 +170,13 @@ const Dashboard = ({ height, userId }) => {
           <div className="grid grid-cols-1 gap-4 mb-4">
             <div className="flex flex-col items-center justify-start pb-1 pr-5 rounded h-[600px] bg-gray-800" ref={chartRef}>
               <div>
-                <select value={selectedOption} onChange={handleSelect}>
+                {/* <select value={selectedOption} onChange={handleSelect}>
                   {metrics.map((item) => (
                     <option value={item.data_id}>
                       {JSON.stringify(item.data_id).slice(1, -1)}
                     </option>
                   ))}
-                </select>
+                </select> */}
               </div>
               <button onClick={downloadAsPdf} style={{color:'white'}}>Download Chart as PDF</button>
               <RealTimeChart info={metricArray} />
