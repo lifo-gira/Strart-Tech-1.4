@@ -8,6 +8,7 @@ const UserTable = ({switchToDash, setUserId}) => {
     fetch("https://api-h5zs.onrender.com/get-all-user/patient")
       .then((res) => res.json())
       .then((data) => setusers(data));
+     console.log(users)
   }, []);
 
   return (
@@ -31,8 +32,9 @@ const UserTable = ({switchToDash, setUserId}) => {
           </thead>
           <tbody>
             {users.map((val, index) => {
-              console.log(index,val.user_id,"val")
+              // console.log(index,val.user_id,"val")
               if(index === users.length - 1){
+                console.log(val.user_id,"userer")
               return (
                 <tr
                   className="border-b bg-gray-800 border-gray-700  hover:bg-gray-600"
