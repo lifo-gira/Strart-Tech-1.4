@@ -197,7 +197,7 @@ const Diagnostics = () => {
           for (var i = 0; i < metrics.length; i++) {
             if (metrics[i].series != "")
             for (var j = 0; j < metrics[i].series.length; j++) {
-          seriesmetrics.push(parseInt(metrics[i].series[j]))
+          seriesmetrics.push(parseFloat(metrics[i].series[j]))
         }
       }
       setseriesmetrics(seriesmetrics)
@@ -214,7 +214,7 @@ const Diagnostics = () => {
                   for (let i = 0; i < series.length; i += 10) {
                     dataCount = dataCount +series.length
                     const slice = series.slice(i, i + 10);
-                    const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseInt(val) }));
+                    const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
                     console.log(slice, "mapped")
                     setmetricArray(mappedSlice)
                     // metricArray.push(...mappedSlice);
