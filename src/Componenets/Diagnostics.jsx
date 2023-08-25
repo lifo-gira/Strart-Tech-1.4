@@ -37,41 +37,33 @@ const Diagnostics = () => {
     var [counter, setCounter] = useState(-2);
     const timerRef = useRef();
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
-    // let datacounter = 120,count=2
+    let datacounter = 60,count=2
 
 
     const generateNewDataPoint = () => {
-      console.log(counter,"counter")
+      // console.log(counter,"counter")
       return counter < metricArray.length ? metricArray[counter] : null;
-  };
-
-  const updateChart = () => {
+    };
+    
+    const updateChart = () => {
       if(counter==metricArray.length){
         console.log(metricArray.length,"lengtth")
-          setIsRunning(false);
-          setIsTimerRunning(false);
-          clearInterval(timerRef.current);
+        setIsRunning(false);
+        setIsTimerRunning(false);
+        clearInterval(timerRef.current);
           setIsButtonEnabled(true)
           return;
-      }
-
-      // if (counter >= datacounter) {
-      //   //  console.log(counter,"counter")
-      //     setIsRunning(true);
-      //     setIsTimerRunning(true);
-      //     setCounter(counter-1);
-      //     clearInterval(timerRef.current);
-      //     timerRef.current = undefined;
-      //     setIsButtonEnabled(true)
-      //     datacounter = 120 * count
-      //     count= count + 1
-      //     return;
-      // }
-      
-      counter = counter + 1
-      const newDataPoint = generateNewDataPoint();
-      setCounter(prevCounter => prevCounter + 1);
-      setData(prevData => [...prevData, newDataPoint]);
+        }
+        if(!isRunning){
+          setIsRunning(true);
+          setIsTimerRunning(true);
+          counter = counter + 1
+          console.log(counter,"counter")
+          // setCounter(counter)
+          const newDataPoint = generateNewDataPoint();
+          setCounter(prevCounter => prevCounter + 1);
+          setData(prevData => [...prevData, newDataPoint]);
+        }
   };
   
   
@@ -89,7 +81,7 @@ const Diagnostics = () => {
   useEffect(() => {
       const timer = setTimeout(() => {
           setIsButtonEnabled(true);
-      }, 5000);
+      }, 7000);
       return () => {
           clearTimeout(timer);
       };
@@ -109,12 +101,12 @@ const Diagnostics = () => {
       if (isRunning) {
           setIsRunning(false);
           setIsTimerRunning(false);
-          setCounter(counter-1)
           clearInterval(timerRef.current);
           timerRef.current = undefined;
-      } else {
+        } else {
           setIsRunning(true);
           setIsTimerRunning(true);
+          // setCounter(counter-1)
           updateChart();
           if (!timerRef.current) {
               timerRef.current = setInterval(updateChart, 1000);
@@ -123,7 +115,6 @@ const Diagnostics = () => {
           setTimeout(() => {
               setIsRunning(false);
               setIsTimerRunning(false);
-              setCounter(counter-1);
               clearInterval(timerRef.current);
               timerRef.current = undefined;
             }, 60000); // 120000 milliseconds = 2 minutes
@@ -310,7 +301,7 @@ const Diagnostics = () => {
     <div className="w-full flex flex-col items-center justify-center">
       <div className="w-full h-full  bg-white p-6 mb-4 flex flex-col items-center">
         <div>
-          <p class="max-w-2xl mb-6 font-regular text-black lg:mb-8 md:text-lg lg:text-xl dark:text-black">You can start your graph by Clicking on the <span className='font-bold text-green-700'>Start button</span> below once the graph is generated you will be able to download it by clicking on <span className='font-bold text-blue-500'>Download button</span> below.<br/><span className='font-bold'>Note:</span>You can generate the graph upto 2 minutes only. If multiple graphs needed you can repeat the same process.</p>
+          <p class="max-w-2xl mb-6 font-regular text-black lg:mb-8 md:text-lg lg:text-xl dark:text-black">You can start your graph by Clicking on the <span className='font-bold text-green-700'>Start button</span> below once the graph is generated you will be able to download it by clicking on <span className='font-bold text-blue-500'>Download button</span> below.<br/><span className='font-bold'>Note:</span>You can generate the graph upto 1 minute only. If multiple graphs needed you can repeat the same process.</p>
         </div>
         <div className="flex flex-col items-center justify-start pb-1 pr-5 rounded w-full h-[600px] bg-white-800" ref={chartRef}>
           
@@ -344,7 +335,7 @@ const Diagnostics = () => {
                     {isRunning ? 'Stop' : 'Start'}
                 </button>
             ) : (
-                <p style={{color:'black'}}>Waiting for 5 seconds...</p>
+                <p style={{color:'black'}}>Waiting for 7 seconds...</p>
             )}
             <br></br>
             <button onClick={downloadAsPdf} style={{ color : 'black',border: "2px solid black", padding:'5px', borderRadius: "25px"}} disabled={isRunning}>Download Chart as PDF</button>
