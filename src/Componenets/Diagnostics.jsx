@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { ResponsiveContainer, LineChart, CartesianGrid, Tooltip, XAxis, YAxis, Line, Label } from 'recharts';
 import Timer from '../additionals/Timer';
+import { toast } from 'react-toastify';
 
 
 const Diagnostics = () => {
@@ -39,6 +40,12 @@ const Diagnostics = () => {
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
     let datacounter = 60,count=2
 
+    const showToastMessage = () => {
+      toast.error('No more datas to be found', {
+          position: toast.POSITION.TOP_RIGHT,
+          autoClose: 1500
+      });
+  };
 
     const generateNewDataPoint = () => {
       // console.log(counter,"counter")
@@ -48,6 +55,7 @@ const Diagnostics = () => {
     const updateChart = () => {
       if(counter==metricArray.length){
         console.log(metricArray.length,"lengtth")
+        showToastMessage();
         setIsRunning(false);
         setIsTimerRunning(false);
         clearInterval(timerRef.current);
