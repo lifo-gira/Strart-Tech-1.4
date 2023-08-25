@@ -109,7 +109,7 @@ const Diagnostics = () => {
       if (isRunning) {
           setIsRunning(false);
           setIsTimerRunning(false);
-          setCounter(counter)
+          setCounter(counter-1)
           clearInterval(timerRef.current);
           timerRef.current = undefined;
       } else {
@@ -123,7 +123,7 @@ const Diagnostics = () => {
           setTimeout(() => {
               setIsRunning(false);
               setIsTimerRunning(false);
-              setCounter(counter);
+              setCounter(counter-1);
               clearInterval(timerRef.current);
               timerRef.current = undefined;
             }, 60000); // 120000 milliseconds = 2 minutes
