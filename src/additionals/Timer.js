@@ -8,7 +8,7 @@ const Timer = ({ isRunning }) => {
 
     useEffect(() => {
         const timer = setInterval(() => {
-            if (minutes === 2 && seconds === 0) {
+            if (minutes === 1 && seconds === 0) {
                 clearInterval(timer);
                 setTimerCompleted(true); // Set timerCompleted to true
                 return;
@@ -33,7 +33,7 @@ const Timer = ({ isRunning }) => {
          } // No need to update progress if timer is completed
 
         const totalSeconds = minutes * 60 + seconds;
-        const totalDuration = 2 * 60; // Total duration in seconds (2 minutes)
+        const totalDuration = 1 * 60; // Total duration in seconds (2 minutes)
         const calculatedProgress = (totalSeconds / totalDuration) * 100;
         setProgress(calculatedProgress);
     }, [minutes, seconds, timerCompleted]);

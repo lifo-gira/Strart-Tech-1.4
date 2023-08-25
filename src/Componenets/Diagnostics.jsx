@@ -26,6 +26,7 @@ const Diagnostics = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [metricArray, setmetricArray] = useState([]);
   const [seriesCount, setseriesCount] = useState([]);
+  const [counterValue, setCounterValue] = useState(0);
   const tempArray = []
   const tempCount = 0
   var dataCount = 0
@@ -36,7 +37,7 @@ const Diagnostics = () => {
     var [counter, setCounter] = useState(-2);
     const timerRef = useRef();
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
-    let datacounter = 120,count=2
+    // let datacounter = 120,count=2
 
 
     const generateNewDataPoint = () => {
@@ -45,27 +46,28 @@ const Diagnostics = () => {
   };
 
   const updateChart = () => {
-      if(counter===metricArray.length){
-          setIsRunning(true);
-          setIsTimerRunning(true);
-          setCounter(counter);
+      if(counter==metricArray.length){
+        console.log(metricArray.length,"lengtth")
+          setIsRunning(false);
+          setIsTimerRunning(false);
           clearInterval(timerRef.current);
           setIsButtonEnabled(true)
           return;
       }
 
-      if (counter >= datacounter) {
-         
-          setIsRunning(true);
-          setIsTimerRunning(true);
-          setCounter(counter);
-          clearInterval(timerRef.current);
-          setIsButtonEnabled(true)
-          datacounter = 120 * count
-          count= count +1
-          return;
-      }
-
+      // if (counter >= datacounter) {
+      //   //  console.log(counter,"counter")
+      //     setIsRunning(true);
+      //     setIsTimerRunning(true);
+      //     setCounter(counter-1);
+      //     clearInterval(timerRef.current);
+      //     timerRef.current = undefined;
+      //     setIsButtonEnabled(true)
+      //     datacounter = 120 * count
+      //     count= count + 1
+      //     return;
+      // }
+      
       counter = counter + 1
       const newDataPoint = generateNewDataPoint();
       setCounter(prevCounter => prevCounter + 1);
@@ -107,7 +109,7 @@ const Diagnostics = () => {
       if (isRunning) {
           setIsRunning(false);
           setIsTimerRunning(false);
-          counter= counter
+          setCounter(counter)
           clearInterval(timerRef.current);
           timerRef.current = undefined;
       } else {
@@ -124,7 +126,7 @@ const Diagnostics = () => {
               setCounter(counter);
               clearInterval(timerRef.current);
               timerRef.current = undefined;
-            }, 120000); // 120000 milliseconds = 2 minutes
+            }, 60000); // 120000 milliseconds = 2 minutes
             setData([]);
           }
   };
@@ -210,19 +212,20 @@ const Diagnostics = () => {
               let temp = metrics.map((item) => {
                 const series = item.series;
                 // console.log(series,"ASDAS")
-                if (flag < seriesCount[0]) {
+                if (flag < seriesCount[seriesCount.length-1]) {
                   for (let i = 0; i < series.length; i += 10) {
                     dataCount = dataCount +series.length
                     const slice = series.slice(i, i + 10);
                     const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
                     console.log(slice, "mapped")
-                    setmetricArray(mappedSlice)
+                    metricArray.push(...mappedSlice )
+                    // setmetricArray(mappedSlice)
                     // metricArray.push(...mappedSlice);
                     // console.log(metricArray,"metric")
                   }
                   flag = flag + 1
                 }
-                console.log(dataCount,"metrics")
+                // console.log(dataCount,"metrics")
                 return tempArray;
               });
               return temp
@@ -309,22 +312,7 @@ const Diagnostics = () => {
         <div>
           <p class="max-w-2xl mb-6 font-regular text-black lg:mb-8 md:text-lg lg:text-xl dark:text-black">You can start your graph by Clicking on the <span className='font-bold text-green-700'>Start button</span> below once the graph is generated you will be able to download it by clicking on <span className='font-bold text-blue-500'>Download button</span> below.<br/><span className='font-bold'>Note:</span>You can generate the graph upto 2 minutes only. If multiple graphs needed you can repeat the same process.</p>
         </div>
-      {/* <div className="mb-5 text-2xl">
-          Timer: {Math.floor(timer / 60)}:{timer % 60}
-        </div>
-        <div className="w-full h-4 mx-auto mb-4 relative rounded bg-teal-200">
-          <div
-            style={{ width: `${progress*0.187}%` }}
-            className="h-full bg-teal-500"
-          ></div>
-        </div> */}
         <div className="flex flex-col items-center justify-start pb-1 pr-5 rounded w-full h-[600px] bg-white-800" ref={chartRef}>
-          {/* Replace with your graph display content */}
-          {/* <img
-            src={Graph}
-            alt="Graph"
-            className="w-full h-full"
-          /> */}
           
     {isTimerRunning && <Timer />}
         <ResponsiveContainer width="100%" height="80%">
@@ -352,38 +340,15 @@ const Diagnostics = () => {
             </LineChart>
         </ResponsiveContainer>
         {isButtonEnabled ? (
-                <button onClick={toggleChart} style={{ color: 'black' }}>
+                <button onClick={toggleChart} style={{ color: 'black',border: "2px solid black", padding:'5px', borderRadius: "25px" }}>
                     {isRunning ? 'Stop' : 'Start'}
                 </button>
             ) : (
                 <p style={{color:'black'}}>Waiting for 5 seconds...</p>
             )}
-            <button onClick={downloadAsPdf} style={{ color: 'black' }}>Download Chart as PDF</button>
+            <br></br>
+            <button onClick={downloadAsPdf} style={{ color : 'black',border: "2px solid black", padding:'5px', borderRadius: "25px"}} disabled={isRunning}>Download Chart as PDF</button>
         </div>
-        {/* <div className="flex justify-center space-x-4">
-          {!isRunning ? (
-            <button
-              onClick={startTimer}
-              className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 focus:outline-none focus:ring focus:ring-teal-300"
-            >
-              Start
-            </button>
-          ) : (
-            <button
-              onClick={stopTimer}
-              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300"
-            >
-              Stop
-            </button>
-          )}
-          <button
-            onClick={downloadGraph}
-            disabled={!downloadEnabled}
-            className={`bg-blue-500 text-white px-4 py-2 rounded-md ${downloadEnabled ? 'hover:bg-blue-600 focus:ring focus:ring-blue-300' : 'cursor-not-allowed opacity-50'}`}
-          >
-            Download
-          </button>
-        </div> */}
       </div>
     
     </div>

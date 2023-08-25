@@ -30,39 +30,8 @@ const Live = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  async function sereiesMetrics(data) {
-    const response = await fetch("https://api-h5zs.onrender.com/metrics", {
-      method: "POST",
-      cache: "no-cache",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  }
-
-  async function fetchMetrics(data) {
-    const response = await fetch("https://api-h5zs.onrender.com/metrics", {
-      method: "POST",
-      cache: "no-cache",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  }
-
-
-  useEffect(() => {
-    if (autoScroll) {
-      scrollToBottom();
-    }
-  }, [metrics]);
-
-  useEffect(() => {
-    fetch(`https://api-h5zs.onrender.com/get-user/patient/${userId}`)
+async function fetchData(){
+  fetch(`https://api-h5zs.onrender.com/get-user/patient/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         setPatient(data);
@@ -112,6 +81,45 @@ const Live = () => {
     return () => {
       clearInterval();
     };
+}
+
+  async function sereiesMetrics(data) {
+    const response = await fetch("https://api-h5zs.onrender.com/metrics", {
+      method: "POST",
+      cache: "no-cache",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  }
+
+  async function fetchMetrics(data) {
+    const response = await fetch("https://api-h5zs.onrender.com/metrics", {
+      method: "POST",
+      cache: "no-cache",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  }
+
+
+  useEffect(() => {
+    if (autoScroll) {
+      scrollToBottom();
+    }
+  }, [metrics]);
+
+  useEffect(() => {
+    fetchData();
+    const tpr = setInterval(fetchData,1000);
+    return ()=>{
+      clearInterval(tpr)
+    }
   }, []);
 
 
