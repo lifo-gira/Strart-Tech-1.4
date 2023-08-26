@@ -32,7 +32,7 @@ const Diagnostics = () => {
   const tempCount = 0
   var dataCount = 0
   var flag = 0
-  localStorage.getItem("lastCount",counter-2 || -2)
+  localStorage.getItem("lastCount",counter-2)
 
     const [data, setData] = useState([]);
     const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -73,7 +73,7 @@ const Diagnostics = () => {
         const newDataPoint = generateNewDataPoint();
         setCounter(prevCounter => prevCounter + 1);
         setData(prevData => [...prevData, newDataPoint]);
-        // localStorage.setItem("lastCount",counter-2)
+        localStorage.setItem("lastCount",counter-2)
         }
   };
   
@@ -114,7 +114,7 @@ const Diagnostics = () => {
           setIsTimerRunning(false);
           clearInterval(timerRef.current);
           timerRef.current = undefined;
-          localStorage.setItem("lastCount", counter);
+          localStorage.setItem("lastCount", counter-2);
         } else {
           setIsRunning(true);
           setIsTimerRunning(true);
@@ -129,7 +129,7 @@ const Diagnostics = () => {
               setIsTimerRunning(false);
               clearInterval(timerRef.current);
               timerRef.current = undefined;
-              localStorage.setItem("lastCount", counter);
+              localStorage.setItem("lastCount", counter-2);
             }, 60000); // 120000 milliseconds = 2 minutes
             setData([]);
           }
