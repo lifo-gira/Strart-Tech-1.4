@@ -32,10 +32,11 @@ const Diagnostics = () => {
   const tempCount = 0
   var dataCount = 0
   var flag = 0
+  localStorage.getItem("lastCount",counter-2 || 0)
 
     const [data, setData] = useState([]);
     const [isTimerRunning, setIsTimerRunning] = useState(false);
-    var [counter, setCounter] = useState(-2);
+    var [counter, setCounter] = useState(parseInt(localStorage.getItem("lastCount")));
     const timerRef = useRef();
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
     let datacounter = 60,count=2
@@ -46,6 +47,7 @@ const Diagnostics = () => {
           autoClose: 1500
       });
   };
+
 
     const generateNewDataPoint = () => {
       // console.log(counter,"counter")
@@ -59,18 +61,19 @@ const Diagnostics = () => {
         setIsRunning(false);
         setIsTimerRunning(false);
         clearInterval(timerRef.current);
-          setIsButtonEnabled(true)
-          return;
-        }
-        if(!isRunning){
-          setIsRunning(true);
-          setIsTimerRunning(true);
-          counter = counter + 1
-          console.log(counter,"counter")
-          // setCounter(counter)
-          const newDataPoint = generateNewDataPoint();
-          setCounter(prevCounter => prevCounter + 1);
-          setData(prevData => [...prevData, newDataPoint]);
+        setIsButtonEnabled(true)
+        return;
+      }
+      if(!isRunning){
+        setIsRunning(true);
+        setIsTimerRunning(true);
+        counter = counter + 1
+        console.log(counter,"counter")
+        // setCounter(counter)
+        const newDataPoint = generateNewDataPoint();
+        setCounter(prevCounter => prevCounter + 1);
+        setData(prevData => [...prevData, newDataPoint]);
+        // localStorage.setItem("lastCount",counter-2)
         }
   };
   
@@ -111,6 +114,7 @@ const Diagnostics = () => {
           setIsTimerRunning(false);
           clearInterval(timerRef.current);
           timerRef.current = undefined;
+          localStorage.setItem("lastCount", counter);
         } else {
           setIsRunning(true);
           setIsTimerRunning(true);
@@ -125,6 +129,7 @@ const Diagnostics = () => {
               setIsTimerRunning(false);
               clearInterval(timerRef.current);
               timerRef.current = undefined;
+              localStorage.setItem("lastCount", counter);
             }, 60000); // 120000 milliseconds = 2 minutes
             setData([]);
           }
