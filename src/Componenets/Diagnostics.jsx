@@ -41,7 +41,7 @@ const Diagnostics = () => {
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
     let datacounter = 60,count=2
 
-    const showToastMessage = () => {
+     function showToastMessage () {
       toast.error('No more datas to be found', {
           position: toast.POSITION.TOP_RIGHT,
           autoClose: 1500
@@ -57,7 +57,7 @@ const Diagnostics = () => {
     const updateChart = () => {
       if(counter==metricArray.length){
         console.log(metricArray.length,"lengtth")
-        showToastMessage();
+        window.alert('No more datas to be found')
         setIsRunning(false);
         setIsTimerRunning(false);
         clearInterval(timerRef.current);
