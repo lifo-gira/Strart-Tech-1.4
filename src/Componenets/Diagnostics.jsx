@@ -32,7 +32,7 @@ const Diagnostics = () => {
   const tempCount = 0
   var dataCount = 0
   var flag = 0
-  localStorage.getItem("lastCount",counter-2 || 0)
+  localStorage.getItem("lastCount",counter-2 || -2)
 
     const [data, setData] = useState([]);
     const [isTimerRunning, setIsTimerRunning] = useState(false);

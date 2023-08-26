@@ -22,7 +22,7 @@ const Home = () => {
     const flag = 0;
     const [isDropdownVisible, setDropdownVisible] = useState(false);
     const [active, setActive] = useState("");
-    localStorage.setItem("lastCount",-2)
+    // localStorage.setItem("lastCount",-2)
 
     const toggleDropdown = () => {
         setDropdownVisible(prevVisible => !prevVisible);
