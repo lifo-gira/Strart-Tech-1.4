@@ -32,7 +32,6 @@ const Diagnostics = () => {
   const tempCount = 0
   var dataCount = 0
   var flag = 0
-  localStorage.setItem("lastCount", 3480)
 
   const [data, setData] = useState([]);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -40,20 +39,20 @@ const Diagnostics = () => {
   const timerRef = useRef();
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   let datacounter = 60, count = 2
-  console.log(metricArray.length, "lengtth")
   function showToastMessage() {
     toast.error('No more datas to be found', {
       position: toast.POSITION.TOP_RIGHT,
       autoClose: 1500
     });
   };
-
-
+  
+  
   const generateNewDataPoint = () => {
     // console.log(counter,"counter")
+    console.log(metricArray.length, "lengtth")
     return counter < metricArray.length ? metricArray[counter] : null;
   };
-
+  
   const updateChart = () => {
     if (counter == metricArray.length) {
       console.log(metricArray.length, "lengtth")
@@ -76,28 +75,28 @@ const Diagnostics = () => {
       localStorage.setItem("lastCount", counter - 2)
     }
   };
-
-
+  
+  
   //   useEffect(() => {
-  //     // console.log("updateChart", flag)
-  //     counter = 0;
-  //     updateChart();
-  //     const interval = setInterval(updateChart, 1000);
-  //     return () => {
-  //       counter = undefined;
-  //       clearInterval(interval)
-  //     };
-  // }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsButtonEnabled(true);
+    //     // console.log("updateChart", flag)
+    //     counter = 0;
+    //     updateChart();
+    //     const interval = setInterval(updateChart, 1000);
+    //     return () => {
+      //       counter = undefined;
+      //       clearInterval(interval)
+      //     };
+      // }, []);
+      
+      useEffect(() => {
+        const timer = setTimeout(() => {
+          setIsButtonEnabled(true);
     }, 7000);
     return () => {
       clearTimeout(timer);
     };
   }, []);
-
+  
   useEffect(() => {
     if (isRunning) {
       updateChart();
