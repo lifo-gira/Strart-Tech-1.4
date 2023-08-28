@@ -32,7 +32,7 @@ const Diagnostics = () => {
   const tempCount = 0
   var dataCount = 0
   var flag = 0
-  localStorage.getItem("lastCount", counter - 2)
+  localStorage.setItem("lastCount", 3480)
 
   const [data, setData] = useState([]);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -40,7 +40,7 @@ const Diagnostics = () => {
   const timerRef = useRef();
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   let datacounter = 60, count = 2
-
+  console.log(metricArray.length, "lengtth")
   function showToastMessage() {
     toast.error('No more datas to be found', {
       position: toast.POSITION.TOP_RIGHT,
