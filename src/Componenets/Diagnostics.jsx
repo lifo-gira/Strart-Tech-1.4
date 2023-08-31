@@ -26,13 +26,16 @@ const Diagnostics = () => {
   const [checkPrevArray, setcheckPrevArray] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [metricArray, setmetricArray] = useState([]);
-  const [seriesCount, setseriesCount] = useState([]);
+  const [tempArr, settempArr] = useState([]);
+  var seriesCount;
   const [counterValue, setCounterValue] = useState(0);
   const tempArray = []
   const tempCount = 0
   var dataCount = 0
-  var flag = 0
-
+  var flag =0
+  var x=0
+  
+  localStorage.setItem("lastCount",7575)
   const [data, setData] = useState([]);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   var [counter, setCounter] = useState(parseInt(localStorage.getItem("lastCount")));
@@ -48,17 +51,23 @@ const Diagnostics = () => {
   
   
   const generateNewDataPoint = () => {
-    // console.log(counter,"counter")
-    console.log(metricArray.length, "lengtth")
+    console.log("metricArraygraph",metricArray)
+    console.log(counter,"counter")
+    console.log(metricArray.length, "no of elemetns")
     return counter < metricArray.length ? metricArray[counter] : null;
   };
   
   const updateChart = () => {
     if (counter == metricArray.length) {
-      console.log(metricArray.length, "lengtth")
+      const x= metricArray.length
+      // setmetricArray([])
+      // console.log(metricArray.length, "no of elemetns in end")
+      localStorage.setItem("lastCount", counter*2)
       window.alert('No more datas to be found')
       setIsRunning(false);
       setIsTimerRunning(false);
+      setCounter(prevCounter => prevCounter + 1);
+
       clearInterval(timerRef.current);
       setIsButtonEnabled(true)
       return;
@@ -67,13 +76,14 @@ const Diagnostics = () => {
       setIsRunning(true);
       setIsTimerRunning(true);
       counter = counter + 1
-      console.log(counter, "counter")
+      // console.log(counter, "counter")
       // setCounter(counter)
+      localStorage.setItem("lastCount", 0)
       const newDataPoint = generateNewDataPoint();
       setCounter(prevCounter => prevCounter + 1);
       setData(prevData => [...prevData, newDataPoint]);
-      localStorage.setItem("lastCount", counter - 2)
     }
+    localStorage.setItem("lastCount", 0)
   };
   
   
@@ -113,7 +123,7 @@ const Diagnostics = () => {
       setIsTimerRunning(false);
       clearInterval(timerRef.current);
       timerRef.current = undefined;
-      localStorage.setItem("lastCount", counter - 2);
+      localStorage.setItem("lastCount", 0);
     } else {
       setIsRunning(true);
       setIsTimerRunning(true);
@@ -128,7 +138,7 @@ const Diagnostics = () => {
         setIsTimerRunning(false);
         clearInterval(timerRef.current);
         timerRef.current = undefined;
-        localStorage.setItem("lastCount", counter - 2);
+        localStorage.setItem("lastCount", 0);
       }, 60000); // 120000 milliseconds = 2 minutes
       setData([]);
     }
@@ -155,29 +165,62 @@ const Diagnostics = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  async function sereiesMetrics(data) {
-    const response = await fetch("https://api-h5zs.onrender.com/metrics", {
-      method: "POST",
-      cache: "no-cache",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+  function sereiesMetrics(data) {
+    const socket = new WebSocket("wss://api-h5zs.onrender.com/ws/metrics");
+  // console.log("socket input",data)
+    return new Promise((resolve, reject) => {
+      socket.onopen = () => {
+        // console.log("WebSocket connection opened");
+        socket.send(JSON.stringify(data));
+      };
+  
+      socket.onmessage = (event) => {
+        const res = JSON.parse(event.data);
+        // console.log("Received:", res);
+        socket.close();
+        resolve(res);
+      };
+  
+      socket.onerror = (event) => {
+        console.error("WebSocket error:", event);
+        socket.close();
+        reject(event);
+      };
+  
+      socket.onclose = () => {
+        // console.log("WebSocket connection closed");
+      };
     });
-    return response.json();
   }
 
-  async function fetchMetrics(data) {
-    const response = await fetch("https://api-h5zs.onrender.com/metrics", {
-      method: "POST",
-      cache: "no-cache",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  }
+  // function fetchMetrics(data) {
+  //   const socket = new WebSocket("wss://api-h5zs.onrender.com/ws/metrics");
+  
+  //   return new Promise((resolve, reject) => {
+  //     socket.onopen = () => {
+  //       console.log("WebSocket connection opened");
+  //       socket.send(JSON.stringify(data));
+  //     };
+  
+  //     socket.onmessage = (event) => {
+  //       const res = JSON.stringify(data);
+  //       // console.log("Received:", res);
+  //       socket.close();
+  //       resolve(res);
+  //     };
+  
+  //     socket.onerror = (event) => {
+  //       console.error("WebSocket error:", event);
+  //       socket.close();
+  //       reject(event);
+  //     };
+  
+  //     socket.onclose = () => {
+  //       console.log("WebSocket connection closed");
+  //     };
+  //   });
+  // }
+  
 
 
   useEffect(() => {
@@ -186,55 +229,90 @@ const Diagnostics = () => {
     }
   }, [metrics]);
 
+var countCtr = 0
+
+  function GraphValue(series){
+    // console.log("if out",series)
+    // if (flag < seriesCount) {
+      // console.log("if in",series,flag,seriesCount)
+      // if(flag===seriesCount-1){
+        // setmetricArray([])
+        for (let i = 0; i < series.length; i += 20) {
+        dataCount = dataCount + series.length
+        const slice = series.slice(i, i + 10);
+        const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
+        localStorage.setItem("lastCount",0)
+        // console.log("counter graph",localStorage.getItem("lastCount"))
+        // console.log("mappedSlice",mappedSlice)
+        // setmetricArray(mappedSlice)
+        metricArray.push(...mappedSlice)
+        // console.log("metricarray",metricArray)
+        // setmetricArray([])
+      // }
+    }
+      // flag = flag + 1
+    // }
+    return metricArray
+
+  }
+
+var ctr=0
+
   useEffect(() => {
     // console.log(user.user_id,"Fetch");
     fetch(`https://api-h5zs.onrender.com/get-user/patient/${userid}`)
       .then((res) => res.json())
       .then((data) => {
         setPatient(data);
-        sereiesMetrics(data.data).then((metrics) => {
+        const socket = new WebSocket(`wss://api-h5zs.onrender.com/ws-get-user/patient/${userid}`);
+        const initialSeriesMetrics = [];
+        socket.onmessage = (event) => {
+          // console.log("Socket")
+          const newData = JSON.parse(event.data);
+          // console.log(newData.data,"newData")
+        sereiesMetrics(newData.data).then((metrics) => {
           setMetrics(metrics);
-        });
-        fetchMetrics(data.data).then((metrics) => {
-          setMetrics(metrics);
-          seriesCount.push(metrics.length)
-          // console.log(flag,"flag")
+          // console.log(metrics)
+          seriesCount = metrics.length
+          // console.log(metrics,"metric")
           for (var i = 0; i < metrics.length; i++) {
             if (metrics[i].series != "")
               for (var j = 0; j < metrics[i].series.length; j++) {
                 seriesmetrics.push(parseFloat(metrics[i].series[j]))
               }
-          }
+            }
+            // console.log(seriesmetrics,"seriesmetrics")
           setseriesmetrics(seriesmetrics)
           setdatametrics(metrics.map((item) => item.data_id))
         });
         setInterval(() => {
-          fetchMetrics(data.data).then((metrics) => {
+          sereiesMetrics(newData.data).then((metrics) => {
             setMetrics(metrics);
+            // console.log(metrics.length,"metrics.length")
+            // console.log(ctr,"ctr")
+            if(ctr<metrics.length){
+              ctr=metrics.length
+              // console.log("metrics",metrics)
+              // console.log("ctr",ctr)
             setFilteredData(() => {
               let temp = metrics.map((item) => {
                 const series = item.series;
-                // console.log(series,"ASDAS")
-                if (flag < seriesCount[seriesCount.length - 1]) {
-                  for (let i = 0; i < series.length; i += 10) {
-                    dataCount = dataCount + series.length
-                    const slice = series.slice(i, i + 10);
-                    const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
-                    console.log(slice, "mapped")
-                    metricArray.push(...mappedSlice)
-                    // setmetricArray(mappedSlice)
-                    // metricArray.push(...mappedSlice);
-                    // console.log(metricArray,"metric")
-                  }
-                  flag = flag + 1
-                }
+                seriesCount = metrics.length
+                // console.log(series,x+=1,"seiries")
+                localStorage.setItem("lastCount",0)
+                // console.log("counter fetch",localStorage.getItem("lastCount"))
+                GraphValue(series);
                 // console.log(dataCount,"metrics")
-                return tempArray;
               });
               return temp
             });
+          }
           });
-        }, 5000);
+        }, 1000);
+        };
+        return () => {
+          socket.close();
+        };
       })
       .catch((err) => {
         console.log(err);
@@ -339,7 +417,7 @@ const Diagnostics = () => {
                 <Label dy={5} value='Time' position='insideBottom' style={{ textAnchor: 'middle' }} tick={{ fill: 'black' }} />
               </XAxis>
               <YAxis>
-                <Label angle={-90} value='Tempertaure' position='insideLeft' style={{ textAnchor: 'middle' }} tick={{ fill: 'black' }} />
+                <Label angle={-90} value='Angle' position='insideLeft' style={{ textAnchor: 'middle' }} tick={{ fill: 'black' }} />
               </YAxis>
               <Line dataKey="val" fill='black' type="monotone" dot={{ fill: 'red', r: 5 }} strokeWidth={3} stackId="2" stroke="cyan" />
             </LineChart>
