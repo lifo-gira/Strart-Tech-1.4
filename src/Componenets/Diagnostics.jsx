@@ -33,12 +33,10 @@ const Diagnostics = () => {
   const tempCount = 0
   var dataCount = 0
   var flag =0
-  var x=0
-  
-  localStorage.setItem("lastCount",7575)
+  localStorage.setItem("lastCount",metricArray.length)
   const [data, setData] = useState([]);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  var [counter, setCounter] = useState(parseInt(localStorage.getItem("lastCount")));
+  var [counter, setCounter] = useState(-2);
   const timerRef = useRef();
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   let datacounter = 60, count = 2
@@ -51,7 +49,7 @@ const Diagnostics = () => {
   
   
   const generateNewDataPoint = () => {
-    console.log("metricArraygraph",metricArray)
+    console.log(metricArray,"metricArraygraph")
     console.log(counter,"counter")
     console.log(metricArray.length, "no of elemetns")
     return counter < metricArray.length ? metricArray[counter] : null;
@@ -59,15 +57,13 @@ const Diagnostics = () => {
   
   const updateChart = () => {
     if (counter == metricArray.length) {
-      const x= metricArray.length
-      // setmetricArray([])
-      // console.log(metricArray.length, "no of elemetns in end")
-      localStorage.setItem("lastCount", counter*2)
+      // console.log(metricArray.length, "no of elemetns")
+      
       window.alert('No more datas to be found')
-      setIsRunning(false);
+      setIsRunning(true);
       setIsTimerRunning(false);
       setCounter(prevCounter => prevCounter + 1);
-
+      localStorage.setItem("lastCount", -2);
       clearInterval(timerRef.current);
       setIsButtonEnabled(true)
       return;
@@ -78,12 +74,11 @@ const Diagnostics = () => {
       counter = counter + 1
       // console.log(counter, "counter")
       // setCounter(counter)
-      localStorage.setItem("lastCount", 0)
       const newDataPoint = generateNewDataPoint();
       setCounter(prevCounter => prevCounter + 1);
       setData(prevData => [...prevData, newDataPoint]);
+      localStorage.setItem("lastCount", counter - 2)
     }
-    localStorage.setItem("lastCount", 0)
   };
   
   
@@ -123,7 +118,7 @@ const Diagnostics = () => {
       setIsTimerRunning(false);
       clearInterval(timerRef.current);
       timerRef.current = undefined;
-      localStorage.setItem("lastCount", 0);
+      localStorage.setItem("lastCount", counter - 2);
     } else {
       setIsRunning(true);
       setIsTimerRunning(true);
@@ -138,13 +133,11 @@ const Diagnostics = () => {
         setIsTimerRunning(false);
         clearInterval(timerRef.current);
         timerRef.current = undefined;
-        localStorage.setItem("lastCount", 0);
+        localStorage.setItem("lastCount", counter - 2);
       }, 60000); // 120000 milliseconds = 2 minutes
       setData([]);
     }
   };
-
-
 
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [active, setActive] = useState("");
@@ -165,9 +158,22 @@ const Diagnostics = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // async function sereiesMetrics(data) {
+  //   const response = await fetch("https://api-h5zs.onrender.com/metrics", {
+  //     method: "POST",
+  //     cache: "no-cache",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify(data),
+  //   });
+  //   console.log(JSON.stringify(data),"response DATA")
+  //   return response.json();
+  // }
+
   function sereiesMetrics(data) {
     const socket = new WebSocket("wss://api-h5zs.onrender.com/ws/metrics");
-  // console.log("socket input",data)
+  // console.log("socket input",data);
     return new Promise((resolve, reject) => {
       socket.onopen = () => {
         // console.log("WebSocket connection opened");
@@ -229,47 +235,22 @@ const Diagnostics = () => {
     }
   }, [metrics]);
 
-var countCtr = 0
-
-  function GraphValue(series){
-    // console.log("if out",series)
-    // if (flag < seriesCount) {
-      // console.log("if in",series,flag,seriesCount)
-      // if(flag===seriesCount-1){
-        // setmetricArray([])
-        for (let i = 0; i < series.length; i += 20) {
-        dataCount = dataCount + series.length
-        const slice = series.slice(i, i + 10);
-        const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
-        localStorage.setItem("lastCount",0)
-        // console.log("counter graph",localStorage.getItem("lastCount"))
-        // console.log("mappedSlice",mappedSlice)
-        // setmetricArray(mappedSlice)
-        metricArray.push(...mappedSlice)
-        // console.log("metricarray",metricArray)
-        // setmetricArray([])
-      // }
-    }
-      // flag = flag + 1
-    // }
-    return metricArray
-
-  }
-
-var ctr=0
-
   useEffect(() => {
     // console.log(user.user_id,"Fetch");
     fetch(`https://api-h5zs.onrender.com/get-user/patient/${userid}`)
       .then((res) => res.json())
       .then((data) => {
         setPatient(data);
+        // console.log(data)
         const socket = new WebSocket(`wss://api-h5zs.onrender.com/ws-get-user/patient/${userid}`);
-        const initialSeriesMetrics = [];
         socket.onmessage = (event) => {
           // console.log("Socket")
           const newData = JSON.parse(event.data);
           // console.log(newData.data,"newData")
+           sereiesMetrics(newData.data).then((metrics) => {
+          setMetrics(metrics);
+          // console.log(metrics,"data")
+        });
         sereiesMetrics(newData.data).then((metrics) => {
           setMetrics(metrics);
           // console.log(metrics)
@@ -283,36 +264,89 @@ var ctr=0
             }
             // console.log(seriesmetrics,"seriesmetrics")
           setseriesmetrics(seriesmetrics)
-          setdatametrics(metrics.map((item) => item.data_id))
+          // setdatametrics(metrics.map((item) => item.data_id))
         });
         setInterval(() => {
           sereiesMetrics(newData.data).then((metrics) => {
             setMetrics(metrics);
-            // console.log(metrics.length,"metrics.length")
-            // console.log(ctr,"ctr")
-            if(ctr<metrics.length){
-              ctr=metrics.length
-              // console.log("metrics",metrics)
-              // console.log("ctr",ctr)
+            // console.log(metrics)
             setFilteredData(() => {
               let temp = metrics.map((item) => {
                 const series = item.series;
+                // console.log(series)
                 seriesCount = metrics.length
-                // console.log(series,x+=1,"seiries")
-                localStorage.setItem("lastCount",0)
-                // console.log("counter fetch",localStorage.getItem("lastCount"))
-                GraphValue(series);
-                // console.log(dataCount,"metrics")
+                // console.log("seriesCount",seriesCount)
+                // console.log("flag",flag)
+                //   // console.log("live",item)
+                //   // console.log("flag",flag,seriesCount)
+                //   if(flag===seriesCount-1){
+                  for (let i = 0; i < series.length; i += 20) {
+                    // dataCount = dataCount + series.length
+                    const slice = series.slice(i, i + 10);
+                    const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
+                    // console.log("mappedSlice",mappedSlice)
+                    // setmetricArray(mappedSlice)
+                    // console.log("flag",flag,seriesCount)
+                    if (flag < seriesCount) {
+                    metricArray.push(...mappedSlice)
+                    console.log("metrics",metricArray)
+                    flag = flag + 1
+                  }
+                }
+                return tempArray;
               });
               return temp
             });
-          }
           });
         }, 1000);
         };
         return () => {
           socket.close();
         };
+        // sereiesMetrics(data.data).then((metrics) => {
+        //   setMetrics(metrics);
+        //   console.log(metrics,"data")
+        // });
+        // fetchMetrics(data.data).then((metrics) => {
+        //   setMetrics(metrics);
+        //   seriesCount.push(metrics.length)
+        //   // console.log(flag,"flag")
+        //   for (var i = 0; i < metrics.length; i++) {
+        //     if (metrics[i].series != "")
+        //       for (var j = 0; j < metrics[i].series.length; j++) {
+        //         seriesmetrics.push(parseFloat(metrics[i].series[j]))
+        //       }
+        //   }
+        //   setseriesmetrics(seriesmetrics)
+        //   setdatametrics(metrics.map((item) => item.data_id))
+        // });
+        // setInterval(() => {
+        //   fetchMetrics(data.data).then((metrics) => {
+        //     setMetrics(metrics);
+        //     setFilteredData(() => {
+        //       let temp = metrics.map((item) => {
+        //         const series = item.series;
+        //         // console.log(series,"ASDAS")
+        //         if (flag < seriesCount[seriesCount.length - 1]) {
+        //           for (let i = 0; i < series.length; i += 10) {
+        //             dataCount = dataCount + series.length
+        //             const slice = series.slice(i, i + 10);
+        //             const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
+        //             console.log(slice, "mapped")
+        //             metricArray.push(...mappedSlice)
+        //             // setmetricArray(mappedSlice)
+        //             // metricArray.push(...mappedSlice);
+        //             // console.log(metricArray,"metric")
+        //           }
+        //           flag = flag + 1
+        //         }
+        //         // console.log(dataCount,"metrics")
+        //         return tempArray;
+        //       });
+        //       return temp
+        //     });
+        //   });
+        // }, 5000);
       })
       .catch((err) => {
         console.log(err);
@@ -426,9 +460,9 @@ var ctr=0
             <button onClick={toggleChart} style={{ color: 'black', border: "2px solid black", padding: '5px', borderRadius: "25px" }}>
               {isRunning ? 'Stop' : 'Start'}
             </button>
-          ) : (
+           ) : (
             <p style={{ color: 'black' }}>Waiting for 7 seconds...</p>
-          )}
+          )} 
           <br></br>
           <button onClick={downloadAsPdf} style={{ color: 'black', border: "2px solid black", padding: '5px', borderRadius: "25px" }} disabled={isRunning}>Download Chart as PDF</button>
         </div>
