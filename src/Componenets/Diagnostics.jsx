@@ -32,8 +32,8 @@ const Diagnostics = () => {
   const tempArray = []
   const tempCount = 0
   var dataCount = 0
-  var flag =0
-  localStorage.setItem("lastCount",metricArray.length)
+  var flag = 0
+  localStorage.setItem("lastCount", metricArray.length)
   const [data, setData] = useState([]);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   var [counter, setCounter] = useState(-2);
@@ -46,96 +46,54 @@ const Diagnostics = () => {
       autoClose: 1500
     });
   };
-  
-  
+
+
   const generateNewDataPoint = () => {
-    console.log(metricArray,"metricArraygraph")
-    console.log(counter,"counter")
-    console.log(metricArray.length, "no of elemetns")
-    return counter < metricArray.length ? metricArray[counter] : null;
+    console.log(metricArray, "metricArraygraph");
+    console.log(metricArray.length, "no of elements");
+    return metricArray.length > 0 ? metricArray : [];
   };
-  
+
   const updateChart = () => {
-    if (counter == metricArray.length) {
-      // console.log(metricArray.length, "no of elemetns")
-      
-      window.alert('No more datas to be found')
-      setIsRunning(true);
-      setIsTimerRunning(false);
-      setCounter(prevCounter => prevCounter + 1);
-      localStorage.setItem("lastCount", -2);
-      clearInterval(timerRef.current);
-      setIsButtonEnabled(true)
-      return;
-    }
     if (!isRunning) {
       setIsRunning(true);
       setIsTimerRunning(true);
-      counter = counter + 1
-      // console.log(counter, "counter")
-      // setCounter(counter)
-      const newDataPoint = generateNewDataPoint();
-      setCounter(prevCounter => prevCounter + 1);
-      setData(prevData => [...prevData, newDataPoint]);
-      localStorage.setItem("lastCount", counter - 2)
+      const newDataPoints = generateNewDataPoint();
+      setData(newDataPoints);
+      localStorage.setItem("lastCount", newDataPoints.length);
     }
   };
-  
-  
-  //   useEffect(() => {
-    //     // console.log("updateChart", flag)
-    //     counter = 0;
-    //     updateChart();
-    //     const interval = setInterval(updateChart, 1000);
-    //     return () => {
-      //       counter = undefined;
-      //       clearInterval(interval)
-      //     };
-      // }, []);
-      
-      useEffect(() => {
-        const timer = setTimeout(() => {
-          setIsButtonEnabled(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsButtonEnabled(true);
     }, 7000);
     return () => {
       clearTimeout(timer);
     };
   }, []);
-  
+
   useEffect(() => {
     if (isRunning) {
       updateChart();
-      const interval = setInterval(updateChart, 1000);
-      return () => {
-        clearInterval(interval);
-      };
     }
   }, [isRunning]);
 
   const toggleChart = () => {
     if (isRunning) {
       setIsRunning(false);
-      setIsTimerRunning(false);
-      clearInterval(timerRef.current);
-      timerRef.current = undefined;
-      localStorage.setItem("lastCount", counter - 2);
+      setIsTimerRunning(true);
+      localStorage.setItem("lastCount", data.length - 2);
     } else {
       setIsRunning(true);
       setIsTimerRunning(true);
-      // setCounter(counter-1)
       updateChart();
-      if (!timerRef.current) {
-        timerRef.current = setInterval(updateChart, 1000);
-      }
 
       setTimeout(() => {
-        setIsRunning(false);
+        setIsRunning(true);
         setIsTimerRunning(false);
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-        localStorage.setItem("lastCount", counter - 2);
-      }, 60000); // 120000 milliseconds = 2 minutes
-      setData([]);
+        localStorage.setItem("lastCount", data.length - 2);
+      }, 60000); // 60 seconds
     }
   };
 
@@ -173,26 +131,26 @@ const Diagnostics = () => {
 
   function sereiesMetrics(data) {
     const socket = new WebSocket("wss://api-h5zs.onrender.com/ws/metrics");
-  // console.log("socket input",data);
+    // console.log("socket input",data);
     return new Promise((resolve, reject) => {
       socket.onopen = () => {
         // console.log("WebSocket connection opened");
         socket.send(JSON.stringify(data));
       };
-  
+
       socket.onmessage = (event) => {
         const res = JSON.parse(event.data);
         // console.log("Received:", res);
         socket.close();
         resolve(res);
       };
-  
+
       socket.onerror = (event) => {
         console.error("WebSocket error:", event);
         socket.close();
         reject(event);
       };
-  
+
       socket.onclose = () => {
         // console.log("WebSocket connection closed");
       };
@@ -201,32 +159,32 @@ const Diagnostics = () => {
 
   // function fetchMetrics(data) {
   //   const socket = new WebSocket("wss://api-h5zs.onrender.com/ws/metrics");
-  
+
   //   return new Promise((resolve, reject) => {
   //     socket.onopen = () => {
   //       console.log("WebSocket connection opened");
   //       socket.send(JSON.stringify(data));
   //     };
-  
+
   //     socket.onmessage = (event) => {
   //       const res = JSON.stringify(data);
   //       // console.log("Received:", res);
   //       socket.close();
   //       resolve(res);
   //     };
-  
+
   //     socket.onerror = (event) => {
   //       console.error("WebSocket error:", event);
   //       socket.close();
   //       reject(event);
   //     };
-  
+
   //     socket.onclose = () => {
   //       console.log("WebSocket connection closed");
   //     };
   //   });
   // }
-  
+
 
 
   useEffect(() => {
@@ -247,58 +205,62 @@ const Diagnostics = () => {
           // console.log("Socket")
           const newData = JSON.parse(event.data);
           // console.log(newData.data,"newData")
-           sereiesMetrics(newData.data).then((metrics) => {
-          setMetrics(metrics);
-          // console.log(metrics,"data")
-        });
-        sereiesMetrics(newData.data).then((metrics) => {
-          setMetrics(metrics);
-          // console.log(metrics)
-          seriesCount = metrics.length
-          // console.log(metrics,"metric")
-          for (var i = 0; i < metrics.length; i++) {
-            if (metrics[i].series != "")
-              for (var j = 0; j < metrics[i].series.length; j++) {
-                seriesmetrics.push(parseFloat(metrics[i].series[j]))
-              }
-            }
-            // console.log(seriesmetrics,"seriesmetrics")
-          setseriesmetrics(seriesmetrics)
-          // setdatametrics(metrics.map((item) => item.data_id))
-        });
-        setInterval(() => {
+          sereiesMetrics(newData.data).then((metrics) => {
+            setMetrics(metrics);
+            // console.log(metrics,"data")
+          });
           sereiesMetrics(newData.data).then((metrics) => {
             setMetrics(metrics);
             // console.log(metrics)
-            setFilteredData(() => {
-              let temp = metrics.map((item) => {
-                const series = item.series;
-                // console.log(series)
-                seriesCount = metrics.length
-                // console.log("seriesCount",seriesCount)
-                // console.log("flag",flag)
-                //   // console.log("live",item)
-                //   // console.log("flag",flag,seriesCount)
-                //   if(flag===seriesCount-1){
-                  for (let i = 0; i < series.length; i += 20) {
-                    // dataCount = dataCount + series.length
-                    const slice = series.slice(i, i + 10);
-                    const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
-                    // console.log("mappedSlice",mappedSlice)
-                    // setmetricArray(mappedSlice)
-                    // console.log("flag",flag,seriesCount)
-                    if (flag < seriesCount) {
-                    metricArray.push(...mappedSlice)
-                    console.log("metrics",metricArray)
-                    flag = flag + 1
-                  }
+            seriesCount = metrics.length
+            // console.log(metrics,"metric")
+            for (var i = 0; i < metrics.length; i++) {
+              if (metrics[i].series != "")
+                for (var j = 0; j < metrics[i].series.length; j++) {
+                  seriesmetrics.push(parseFloat(metrics[i].series[j]))
                 }
-                return tempArray;
-              });
-              return temp
-            });
+            }
+            // console.log(seriesmetrics,"seriesmetrics")
+            setseriesmetrics(seriesmetrics)
+            // setdatametrics(metrics.map((item) => item.data_id))
           });
-        }, 1000);
+          setInterval(() => {
+            sereiesMetrics(newData.data).then((metrics) => {
+              setMetrics(metrics);
+              // console.log(metrics)
+              setFilteredData(() => {
+                let temp = metrics.map((item) => {
+                  const series = item.series;
+                  // console.log(series)
+                  seriesCount = metrics.length
+                  // console.log("seriesCount",seriesCount)
+                  // console.log("flag",flag)
+                  //   // console.log("live",item)
+                  //   // console.log("flag",flag,seriesCount)
+                  //   if(flag===seriesCount-1){
+                  //   for (let i = 0; i < series.length; i += 20) {
+                  //     // dataCount = dataCount + series.length
+                  //     const slice = series.slice(i, i + 10);
+                  //     const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
+                  //     // console.log("mappedSlice",mappedSlice)
+                  //     setmetricArray(mappedSlice)
+                  //     // console.log("flag",flag,seriesCount)
+                  //     // if (flag < seriesCount) {
+                  //     // metricArray.push(...mappedSlice)
+                  //     console.log("metrics",metricArray)
+                  //   //   flag = flag + 1
+                  //   // }
+                  // }
+                  const mappedData = series.map((val, index) => ({ index, val: parseFloat(val) }));
+                  setmetricArray(mappedData)
+                  // metricArray.push(...mappedData);
+
+                  return tempArray;
+                });
+                return temp
+              });
+            });
+          }, 1000);
         };
         return () => {
           socket.close();
@@ -442,11 +404,11 @@ const Diagnostics = () => {
                   overflow: 'hidden',
                   fill: 'black',
                   boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-                    }}
-                    
-                    LabelStyle= {{ color: 'black' }}
-                    itemStyle= {{ color: 'black' }} 
-                    />
+                }}
+
+                LabelStyle={{ color: 'black' }}
+                itemStyle={{ color: 'black' }}
+              />
               <XAxis type="category" dataKey="Temperature">
                 <Label dy={5} value='Time' position='insideBottom' style={{ textAnchor: 'middle' }} tick={{ fill: 'black' }} />
               </XAxis>
@@ -460,9 +422,9 @@ const Diagnostics = () => {
             <button onClick={toggleChart} style={{ color: 'black', border: "2px solid black", padding: '5px', borderRadius: "25px" }}>
               {isRunning ? 'Stop' : 'Start'}
             </button>
-           ) : (
+          ) : (
             <p style={{ color: 'black' }}>Waiting for 7 seconds...</p>
-          )} 
+          )}
           <br></br>
           <button onClick={downloadAsPdf} style={{ color: 'black', border: "2px solid black", padding: '5px', borderRadius: "25px" }} disabled={isRunning}>Download Chart as PDF</button>
         </div>
