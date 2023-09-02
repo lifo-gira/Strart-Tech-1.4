@@ -5,7 +5,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { ResponsiveContainer, LineChart, CartesianGrid, Tooltip, XAxis, YAxis, Line, Label } from 'recharts';
 import Timer from '../additionals/Timer';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 
 
 const Diagnostics = () => {
@@ -49,14 +49,18 @@ const Diagnostics = () => {
 
 
   const generateNewDataPoint = () => {
-    console.log(metricArray,"metricArraygraph")
-    console.log(counter,"counter")
+    console.log(metricArray, "metricArraygraph")
+    console.log(counter, "counter")
     console.log(metricArray.length, "no of elemetns")
     return counter < metricArray.length ? metricArray[counter] : null;
   };
-  
+
   const updateChart = () => {
-    if(counter >= metricArray.length){
+    if (counter >= metricArray.length) {
+      if(flag<2){
+      showToastMessage();
+      flag+=1
+      }
       counter = counter - 1
       return
     }
@@ -70,16 +74,16 @@ const Diagnostics = () => {
       setData(prevData => [...prevData, newDataPoint]);
     }
   };
-  
-      useEffect(() => {
-        const timer = setTimeout(() => {
-          setIsButtonEnabled(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsButtonEnabled(true);
     }, 5000);
     return () => {
       clearTimeout(timer);
     };
   }, []);
-  
+
   useEffect(() => {
     if (isRunning) {
       updateChart();
@@ -112,6 +116,7 @@ const Diagnostics = () => {
         timerRef.current = undefined;
         localStorage.setItem("lastCount", counter - 2);
       }, 60000); // 120000 milliseconds = 2 minutes
+      flag=0
       setData([]);
     }
   };
@@ -144,7 +149,7 @@ const Diagnostics = () => {
       },
       body: JSON.stringify(data),
     });
-    console.log(JSON.stringify(data),"response DATA")
+    console.log(JSON.stringify(data), "response DATA")
     return response.json();
   }
 
@@ -154,33 +159,33 @@ const Diagnostics = () => {
     }
   }, [metrics]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const socket = new WebSocket(`wss:/api-h5zs.onrender.com/ws`);
     // console.log("socket",socket)
-    socket.onmessage=(event) =>{
-      console.log(event,"event")
+    socket.onmessage = (event) => {
+      console.log(event, "event")
       const newData = JSON.parse(event.data);
       const seriesCount = newData.series
       // seriesCount = Updated_data.length
       for (let i = 0; i < seriesCount.length; i += 20) {
-      const slice = seriesCount.slice(i, i + 10);
-      const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
-      metricArray.push(...mappedSlice)
-      // setmetricArray(mappedSlice)
+        const slice = seriesCount.slice(i, i + 10);
+        const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
+        metricArray.push(...mappedSlice)
+        // setmetricArray(mappedSlice)
       }
       console.log(metricArray)
     };
-    socket.onopen=()=>{
+    socket.onopen = () => {
       console.log("Socket open")
 
     };
-    socket.onclose=()=>{
+    socket.onclose = () => {
       console.log("Socket close")
     };
     return () => {
       socket.close();
     };
-  },[])
+  }, [])
 
   const chartRef = useRef(null);
   const downloadAsPdf = async () => {
@@ -250,6 +255,20 @@ const Diagnostics = () => {
   return (
     <div className="w-full flex flex-col items-center justify-center">
       <div className="w-full h-full  bg-white p-6 mb-4 flex flex-col items-center">
+        <ToastContainer
+          position="top-right"
+          autoClose={7000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+        {/* Same as */}
+        <ToastContainer />
         <div>
           <p class="max-w-2xl mb-6 font-regular text-black lg:mb-8 md:text-lg lg:text-xl dark:text-black">You can start your graph by Clicking on the <span className='font-bold text-green-700'>Start button</span> below once the graph is generated you will be able to download it by clicking on <span className='font-bold text-blue-500'>Download button</span> below.<br /><span className='font-bold'>Note:</span>You can generate the graph upto 1 minute only. If multiple graphs needed you can repeat the same process.</p>
         </div>
@@ -282,18 +301,18 @@ const Diagnostics = () => {
               <Line dataKey="val" fill='black' type="monotone" dot={{ fill: 'red', r: 5 }} strokeWidth={3} stackId="2" stroke="cyan" />
             </LineChart>
           </ResponsiveContainer>
-          
-          
+
+
         </div>
         {isButtonEnabled ? (
-            <button onClick={toggleChart} style={{ color: 'black', border: "2px solid black", padding: '5px', borderRadius: "25px" }}>
-              {isRunning ? 'Stop' : 'Start'}
-            </button>
-          ) : (
-            <p style={{ color: 'black' }}>Waiting for 5 seconds...</p>
-          )}
-          <br></br>
-          <button onClick={downloadAsPdf} style={{ color: 'black', border: "2px solid black", padding: '5px', borderRadius: "25px" }} disabled={isRunning}>Download Chart as PDF</button>
+          <button onClick={toggleChart} style={{ color: 'black', border: "2px solid black", padding: '5px', borderRadius: "25px" }}>
+            {isRunning ? 'Stop' : 'Start'}
+          </button>
+        ) : (
+          <p style={{ color: 'black' }}>Waiting for 5 seconds...</p>
+        )}
+        <br></br>
+        <button onClick={downloadAsPdf} style={{ color: 'black', border: "2px solid black", padding: '5px', borderRadius: "25px" }} disabled={isRunning}>Download Chart as PDF</button>
       </div>
 
     </div>
