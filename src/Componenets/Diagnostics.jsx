@@ -56,8 +56,8 @@ const Diagnostics = () => {
   };
   
   const updateChart = () => {
-    if(counter == metricArray.length){
-      counter = counter - 2
+    if(counter >= metricArray.length){
+      counter = counter - 1
       return
     }
 

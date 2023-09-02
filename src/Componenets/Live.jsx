@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useRef } from 'react';
 import { useEffect } from 'react';
+import Spinner from "../assets/Spinner";
 
 const Live = () => {
   const [status, setStatus] = useState(localStorage.getItem("isLoggedIn"));
@@ -124,11 +125,24 @@ async function fetchData(){
 
 
   return (
+    <div className="h-full">
+      {patient != null && userId != "" && (
     <div className="w-full h-screen flex flex-col items-center">
       <div className="w-full max-w-3xl  bg-white mb-4 flex flex-col items-center">
       <div>
           <p class="max-w-2xl mb-6 font-regular text-black lg:mb-8 md:text-lg lg:text-xl dark:text-black">The below window contains all the data fetched from the device.</p>
+        
         </div>
+        {/* <button
+              className="text-white bg-gray-800 hover:bg-gray-700 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2"
+              onClick={() => {
+                setAutoScroll(() => {
+                  return !autoScroll;
+                });
+              }}
+            >
+              {autoScroll ? "Auto Scroll Enabled" : "Auto Scroll Disabled"}
+            </button> */}
     <div className="w-full h-screen bg-black text-white p-4 rounded-lg shadow-md mb-4">
       {/* Replace with your log data content */}
       <div
@@ -150,6 +164,9 @@ async function fetchData(){
               </div>
     </div>
     </div>
+    </div>
+      )}
+    {patient == null && userId != "" && <Spinner />}
     </div>
   )
 }
