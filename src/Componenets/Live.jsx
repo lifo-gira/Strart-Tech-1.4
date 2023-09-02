@@ -133,7 +133,7 @@ async function fetchData(){
           <p class="max-w-2xl mb-6 font-regular text-black lg:mb-8 md:text-lg lg:text-xl dark:text-black">The below window contains all the data fetched from the device.</p>
         
         </div>
-        {/* <button
+        <button
               className="text-white bg-gray-800 hover:bg-gray-700 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2"
               onClick={() => {
                 setAutoScroll(() => {
@@ -142,7 +142,7 @@ async function fetchData(){
               }}
             >
               {autoScroll ? "Auto Scroll Enabled" : "Auto Scroll Disabled"}
-            </button> */}
+            </button>
     <div className="w-full h-screen bg-black text-white p-4 rounded-lg shadow-md mb-4">
       {/* Replace with your log data content */}
       <div
