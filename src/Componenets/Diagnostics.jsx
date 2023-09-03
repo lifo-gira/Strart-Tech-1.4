@@ -8,67 +8,55 @@ import Timer from '../additionals/Timer';
 import { ToastContainer, toast } from 'react-toastify';
 
 
-const Diagnostics = () => {
+const Diagnostics = (values) => {
   const [progress, setProgress] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [timer, setTimer] = useState(120); // 2 minutes in seconds
   const [downloadEnabled, setDownloadEnabled] = useState(false);
   const [status, setStatus] = useState(localStorage.getItem("isLoggedIn"));
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
-  const userid = user.user_id;
-  // console.log(user.user_id,"user")
-  const [patient, setPatient] = useState();
   const [metrics, setMetrics] = useState([]);
-  const [datametrics, setdatametrics] = useState([]);
-  const [seriesmetrics, setseriesmetrics] = useState([]);
   const messagesEndRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(false);
-  const [checkPrevArray, setcheckPrevArray] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [metricArray, setmetricArray] = useState([]);
-  const [tempArr, settempArr] = useState([]);
-  var seriesCount;
-  const [counterValue, setCounterValue] = useState(0);
-  const tempArray = []
-  const tempCount = 0
-  var dataCount = 0
   var flag = 0
-  localStorage.setItem("lastCount", metricArray.length)
+
+  localStorage.setItem("lastCount", values.values.length)
   const [data, setData] = useState([]);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   var [counter, setCounter] = useState(-2);
   const timerRef = useRef();
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
-  let datacounter = 60, count = 2
   function showToastMessage() {
     toast.error('No more datas to be found', {
       position: toast.POSITION.TOP_RIGHT,
       autoClose: 1500
     });
   };
-
-
+  console.log(values.values, "metricArray")
   const generateNewDataPoint = () => {
-    console.log(metricArray, "metricArraygraph")
+
+    console.log(values.values, "metricArraygraph")
     console.log(counter, "counter")
-    console.log(metricArray.length, "no of elemetns")
-    return counter < metricArray.length ? metricArray[counter] : null;
+    console.log(values.values.length, "no of elemetns")
+    return counter < values.values.length ? values.values[counter] : null;
   };
 
   const updateChart = () => {
-    if (counter >= metricArray.length) {
-      if(flag<2){
-      showToastMessage();
-      flag+=1
+    if (counter >= values.values.length) {
+      if (flag < 2) {
+        setIsTimerRunning(true);
+        showToastMessage();
+        flag += 1
       }
-      counter = counter - 1
+      setCounter(counter - 1)
       return
     }
 
     if (!isRunning) {
       setIsRunning(true);
       setIsTimerRunning(true);
-      counter = counter + 1
+      if (counter < values.values.length)
+        counter = counter + 1
       const newDataPoint = generateNewDataPoint();
       setCounter(prevCounter => prevCounter + 1);
       setData(prevData => [...prevData, newDataPoint]);
@@ -104,7 +92,8 @@ const Diagnostics = () => {
       setIsRunning(true);
       setIsTimerRunning(true);
       // setCounter(counter-1)
-      updateChart();
+
+    updateChart();
       if (!timerRef.current) {
         timerRef.current = setInterval(updateChart, 1000);
       }
@@ -116,13 +105,12 @@ const Diagnostics = () => {
         timerRef.current = undefined;
         localStorage.setItem("lastCount", counter - 2);
       }, 60000); // 120000 milliseconds = 2 minutes
-      flag=0
+      flag = 0
       setData([]);
     }
   };
 
   const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const [active, setActive] = useState("");
 
   const toggleDropdown = () => {
     setDropdownVisible(prevVisible => !prevVisible);
@@ -140,52 +128,12 @@ const Diagnostics = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  async function sereiesMetrics(data) {
-    const response = await fetch("https://api-h5zs.onrender.com/metrics", {
-      method: "POST",
-      cache: "no-cache",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    console.log(JSON.stringify(data), "response DATA")
-    return response.json();
-  }
-
   useEffect(() => {
     if (autoScroll) {
       scrollToBottom();
     }
   }, [metrics]);
 
-  useEffect(() => {
-    const socket = new WebSocket(`wss:/api-h5zs.onrender.com/ws`);
-    // console.log("socket",socket)
-    socket.onmessage = (event) => {
-      console.log(event, "event")
-      const newData = JSON.parse(event.data);
-      const seriesCount = newData.series
-      // seriesCount = Updated_data.length
-      for (let i = 0; i < seriesCount.length; i += 20) {
-        const slice = seriesCount.slice(i, i + 10);
-        const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
-        metricArray.push(...mappedSlice)
-        // setmetricArray(mappedSlice)
-      }
-      console.log(metricArray)
-    };
-    socket.onopen = () => {
-      console.log("Socket open")
-
-    };
-    socket.onclose = () => {
-      console.log("Socket close")
-    };
-    return () => {
-      socket.close();
-    };
-  }, [])
 
   const chartRef = useRef(null);
   const downloadAsPdf = async () => {
@@ -292,9 +240,9 @@ const Diagnostics = () => {
                 LabelStyle={{ color: 'black' }}
                 itemStyle={{ color: 'black' }}
               />
-              <XAxis type="category" dataKey="Temperature">
-                <Label dy={5} value='Time' position='insideBottom' style={{ textAnchor: 'middle' }} tick={{ fill: 'black' }} />
-              </XAxis>
+              <XAxis dataKey="index" type="category">
+            <Label dy={5} value='Time' position='insideBottom' style={{ textAnchor: 'middle' }} tick={{ fill: 'black' }} />
+          </XAxis>
               <YAxis>
                 <Label angle={-90} value='Angle' position='insideLeft' style={{ textAnchor: 'middle' }} tick={{ fill: 'black' }} />
               </YAxis>

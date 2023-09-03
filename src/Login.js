@@ -32,7 +32,7 @@ const Login = () => {
         } else {
           localStorage.setItem("isLoggedIn", true);
           localStorage.setItem("user", JSON.stringify(data));
-          console.log(JSON.stringify(data));
+          // console.log(JSON.stringify(data));
           localStorage.getItem("user");
           navigate("/home");
         }
