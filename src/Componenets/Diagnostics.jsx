@@ -26,9 +26,16 @@ const Diagnostics = (values) => {
   const [metrics, setMetrics] = useState([]);
   const messagesEndRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(false);
+  const [metricArray, setmetricArray] = useState([]);
+  const dotAppearance = isRunning ? { fill: "red", r: 5 } : { fill: "none" };
+  const [chartData, setChartData] = useState(
+    Array.from({ length: 120 }, (_, i) => ({ index: i + 1, val: 0 }))
+  );
+  const [elapsedTime, setElapsedTime] = useState(0);
+
   var flag = 0;
 
-  localStorage.setItem("lastCount", values.values.length);
+  localStorage.setItem("lastCount", metricArray.length);
   const [data, setData] = useState([]);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   var [counter, setCounter] = useState(-1);
@@ -40,16 +47,22 @@ const Diagnostics = (values) => {
       autoClose: 1500,
     });
   }
-  console.log(values.values, "metricArray");
+  console.log(metricArray, "metricArray");
   const generateNewDataPoint = () => {
-    console.log(values.values, "metricArraygraph");
-    console.log(counter, "counter");
-    console.log(values.values.length, "no of elemetns");
-    return counter < values.values.length ? values.values[counter] : null;
-  };
+  console.log(metricArray, "metricArraygraph");
+  console.log(counter, "counter");
+  console.log(metricArray.length, "no of elemetns");
+  if (counter < metricArray.length) {
+    const newIndex = counter + 1;
+    return { index: newIndex, val: metricArray[counter].val, ...dotAppearance };
+  } else {
+    return null;
+  }
+};
+
 
   const updateChart = () => {
-    if (counter >= values.values.length) {
+    if (counter >= metricArray.length) {
       if (flag < 2) {
         setIsTimerRunning(true);
         showToastMessage();
@@ -62,10 +75,12 @@ const Diagnostics = (values) => {
     if (!isRunning) {
       setIsRunning(true);
       setIsTimerRunning(true);
-      if (counter < values.values.length) counter = counter + 1;
+      if (counter < metricArray.length) counter = counter + 1;
       const newDataPoint = generateNewDataPoint();
       setCounter((prevCounter) => prevCounter + 1);
       setData((prevData) => [...prevData, newDataPoint]);
+      setChartData((prevData) => [...prevData, newDataPoint]);
+      setElapsedTime((prevElapsedTime) => prevElapsedTime + 1); 
     }
   };
 
@@ -88,17 +103,26 @@ const Diagnostics = (values) => {
     }
   }, [isRunning]);
 
+  // const toggleChart = () => {
+  //   if (isRunning) {
+  //     stopTimer();
+  //   } else {
+  //     startTimer();
+  //   }
+  // };
+
   const toggleChart = () => {
     if (isRunning) {
       setIsRunning(false);
       setIsTimerRunning(true);
       clearInterval(timerRef.current);
       timerRef.current = undefined;
+      
     } else {
       setIsRunning(true);
       setIsTimerRunning(true);
       // setCounter(counter-1)
-
+      setElapsedTime(0);
     updateChart();
       if (!timerRef.current) {
         timerRef.current = setInterval(updateChart, 1000);
@@ -109,13 +133,69 @@ const Diagnostics = (values) => {
         setIsTimerRunning(false);
         clearInterval(timerRef.current);
         timerRef.current = undefined;
-      }, 62500); // 120000 milliseconds = 2 minutes
+      }, 124500); // 120000 milliseconds = 2 minutes
       flag = 0
       setData([]);
     }
   };
+
+  const startTimer = () => {
+    setIsRunning(true);
+      setIsTimerRunning(true);
+      // setCounter(counter-1)
+      setElapsedTime(0);
+    updateChart();
+      if (!timerRef.current) {
+        timerRef.current = setInterval(updateChart, 1000);
+      }
+
+      setTimeout(() => {
+        setIsRunning(false);
+        setIsTimerRunning(false);
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }, 124500); // 120000 milliseconds = 2 minutes
+      flag = 0
+      setData([]);
+  };
+
+  const stopTimer = () => {
+    setIsRunning(false);
+      setIsTimerRunning(true);
+      clearInterval(timerRef.current);
+      timerRef.current = undefined;
+  };
   
-  
+  useEffect(() => {
+        const socket = new WebSocket(`wss:/api-h5zs.onrender.com/ws`);
+        // console.log("socket",socket)
+        socket.onmessage = (event) => {
+          console.log(event, "event")
+          const newData = JSON.parse(event.data);
+          console.log(newData,"newData")
+          const seriesCount = newData.series
+          // seriesCount = Updated_data.length
+          for (let i = 0; i < seriesCount.length; i += 20) {
+            const slice = seriesCount.slice(i, i + 10);
+            const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
+            metricArray.push(...mappedSlice)
+            console.log(metricArray,"metrics")
+            // setmetricArray(mappedSlice)
+          }
+          console.log(metricArray)
+          return metricArray;
+        };
+        socket.onopen = () => {
+          console.log("Socket open")
+    
+        };
+        socket.onclose = () => {
+          console.log("Socket close")
+        };
+        return () => {
+          socket.close();
+        };
+      }, [])
   
 
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -187,18 +267,7 @@ const Diagnostics = (values) => {
     }
   }, [timer]);
 
-  const startTimer = () => {
-    setIsRunning(true);
-    setProgress(0);
-    setDownloadEnabled(false);
-    setTimer(120); // Reset timer to 2 minutes
-  };
-
-  const stopTimer = () => {
-    setIsRunning(false);
-    setProgress(0);
-    setDownloadEnabled(true);
-  };
+  
 
   const downloadGraph = () => {
     // Replace this with actual logic to download the graph image
@@ -232,7 +301,7 @@ const Diagnostics = (values) => {
             below.
             <br />
             <span className="font-bold">Note:</span>You can generate the graph
-            upto 1 minute only. If multiple graphs needed you can repeat the
+            upto 2 minutes only. If multiple graphs needed you can repeat the
             same process.
           </p>
         </div>
@@ -260,9 +329,11 @@ const Diagnostics = (values) => {
                 <Label
                   dy={10}
                   value="Time"
+                  domain={[1, elapsedTime + 20]}
                   position="insideBottom"
                   style={{ textAnchor: "middle" }}
                   tick={{ fill: "black" }}
+                  ticks={[1, 20, 40, 60, 80, 100, 120]}
                 />
               </XAxis>
               <YAxis>
@@ -282,6 +353,7 @@ const Diagnostics = (values) => {
                 strokeWidth={3}
                 stackId="2"
                 stroke="cyan"
+                isAnimationActive={false} 
               />
             </LineChart>
           </ResponsiveContainer>

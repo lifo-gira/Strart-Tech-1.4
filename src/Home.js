@@ -22,7 +22,7 @@ const Home = () => {
     const flag = 0;
     const [isDropdownVisible, setDropdownVisible] = useState(false);
     const [active, setActive] = useState("");
-    const [metricArray, setmetricArray] = useState([]);
+    // const [metricArray, setmetricArray] = useState([]);
 
     const toggleDropdown = () => {
         setDropdownVisible(prevVisible => !prevVisible);
@@ -44,34 +44,34 @@ const Home = () => {
     }, [status]);
 
 
-    useEffect(() => {
-        const socket = new WebSocket(`wss:/api-h5zs.onrender.com/ws`);
-        // console.log("socket",socket)
-        socket.onmessage = (event) => {
-          console.log(event, "event")
-          const newData = JSON.parse(event.data);
-          const seriesCount = newData.series
-          // seriesCount = Updated_data.length
-          for (let i = 0; i < seriesCount.length; i += 20) {
-            const slice = seriesCount.slice(i, i + 10);
-            const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
-            metricArray.push(...mappedSlice)
-            // setmetricArray(mappedSlice)
-          }
-          console.log(metricArray)
-          return metricArray;
-        };
-        socket.onopen = () => {
-          console.log("Socket open")
+    // useEffect(() => {
+    //     const socket = new WebSocket(`wss:/api-h5zs.onrender.com/ws`);
+    //     // console.log("socket",socket)
+    //     socket.onmessage = (event) => {
+    //       console.log(event, "event")
+    //       const newData = JSON.parse(event.data);
+    //       const seriesCount = newData.series
+    //       // seriesCount = Updated_data.length
+    //       for (let i = 0; i < seriesCount.length; i += 20) {
+    //         const slice = seriesCount.slice(i, i + 10);
+    //         const mappedSlice = slice.map((val, index) => ({ index: i + index, val: parseFloat(val) }));
+    //         metricArray.push(...mappedSlice)
+    //         // setmetricArray(mappedSlice)
+    //       }
+    //       console.log(metricArray)
+    //       return metricArray;
+    //     };
+    //     socket.onopen = () => {
+    //       console.log("Socket open")
     
-        };
-        socket.onclose = () => {
-          console.log("Socket close")
-        };
-        return () => {
-          socket.close();
-        };
-      }, [])
+    //     };
+    //     socket.onclose = () => {
+    //       console.log("Socket close")
+    //     };
+    //     return () => {
+    //       socket.close();
+    //     };
+    //   }, [])
 
     if (status) {
         return (
@@ -146,7 +146,7 @@ const Home = () => {
                     </div>
                 </section>
                 <section>
-                    {active === "diagnostics" && <Diagnostic values={metricArray}/>}
+                    {active === "diagnostics" && <Diagnostic/>}
                     {active === "live" && <Livedata />}
                 </section>
             </div>
