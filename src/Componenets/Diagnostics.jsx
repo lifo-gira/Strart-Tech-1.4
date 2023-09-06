@@ -31,7 +31,7 @@ const Diagnostics = (values) => {
   const [chartData, setChartData] = useState(
     Array.from({ length: 120 }, (_, i) => ({ index: i + 1, val: 0 }))
   );
-  const [elapsedTime, setElapsedTime] = useState(0);
+  var [elapsedTime, setElapsedTime] = useState(-1);
 
   var flag = 0;
 
@@ -48,12 +48,13 @@ const Diagnostics = (values) => {
     });
   }
   console.log(metricArray, "metricArray");
+  
   const generateNewDataPoint = () => {
   console.log(metricArray, "metricArraygraph");
   console.log(counter, "counter");
   console.log(metricArray.length, "no of elemetns");
   if (counter < metricArray.length) {
-    const newIndex = counter + 1;
+    const newIndex = elapsedTime + 1;
     return { index: newIndex, val: metricArray[counter].val, ...dotAppearance };
   } else {
     return null;
@@ -79,6 +80,7 @@ const Diagnostics = (values) => {
       const newDataPoint = generateNewDataPoint();
       setCounter((prevCounter) => prevCounter + 1);
       setData((prevData) => [...prevData, newDataPoint]);
+      elapsedTime +=1;
       setChartData((prevData) => [...prevData, newDataPoint]);
       setElapsedTime((prevElapsedTime) => prevElapsedTime + 1); 
     }
@@ -113,17 +115,20 @@ const Diagnostics = (values) => {
 
   const toggleChart = () => {
     if (isRunning) {
+      // If the chart is running, stop it
       setIsRunning(false);
-      setIsTimerRunning(true);
+      setIsTimerRunning(false); // Stop the timer
       clearInterval(timerRef.current);
       timerRef.current = undefined;
-      
+      flag = 0;
+      setData([]);
+      setProgress(0); // Reset the progress bar
     } else {
+      // If the chart is stopped, start it
       setIsRunning(true);
-      setIsTimerRunning(true);
-      // setCounter(counter-1)
-      setElapsedTime(0);
-    updateChart();
+      setIsTimerRunning(false); // Timer will start when the chart starts
+      elapsedTime = -1;
+      updateChart();
       if (!timerRef.current) {
         timerRef.current = setInterval(updateChart, 1000);
       }
@@ -134,7 +139,7 @@ const Diagnostics = (values) => {
         clearInterval(timerRef.current);
         timerRef.current = undefined;
       }, 124500); // 120000 milliseconds = 2 minutes
-      flag = 0
+      flag = 0;
       setData([]);
     }
   };
@@ -371,7 +376,7 @@ const Diagnostics = (values) => {
             {isRunning ? "Stop" : "Start"}
           </button>
         ) : (
-          <p style={{ color: "black" }}>Temporarily disabled</p>
+          <p style={{ color: "black" }}>Loading...</p>
         )}
         <br></br>
         <button
